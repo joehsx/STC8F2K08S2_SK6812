@@ -4,16 +4,18 @@
 sfr     P1M0        =   0x92;
 sfr     P1M1        =   0x91;
 sbit Din = P1^6;
+sbit KEY = P1^7;
 
 #define COLOR_NUM 7
-#define LIGHT_NUM 30
+#define LIGHT_NUM 6
+
 struct color
 {
 		unsigned char red;
 		unsigned char green;
 		unsigned char blue;
 };
-
+unsigned char color = 0; 
 struct color rainbow[] = {
 	{0xFF, 0x00, 0x00},		// red
 	{0x00, 0xFF, 0x00},	// oringe
@@ -91,20 +93,36 @@ void send_data(unsigned char r, unsigned char g, unsigned char b)
 			b=b<<1;
 		}
 }
+
+void keyScan()
+{
+	static unsigned char keyup = 1;
+	if((KEY==0)&&(keyup ==1))
+	{
+		Delayms(100);
+		keyup =0;
+		color++;
+		if(color>=COLOR_NUM)
+			color = 0;
+	}
+	else if(KEY == 1)
+	{
+		keyup = 1;
+	}
+}
 void main()
 {
-		unsigned char color,light;
-    P1M0 = 0xff;                                //set P1.0~P1.7 pp
+		unsigned char light;
+    P1M0 = 0x7F;                                //set P1.0~P1.7 pp
     P1M1 = 0x00;
-	
+		KEY = 1;
     while (1){
-	for(color = 0; color < COLOR_NUM; color++) {
+	//for(color = 0; color < COLOR_NUM; color++) {
 		// 1. lighten all the lights
+		keyScan();
 		for(light = 0; light < LIGHT_NUM; light++)
 			send_data(rainbow[color].red, rainbow[color].green, rainbow[color].blue);
 		Reset();
-		Delayms(500);
+		//Delayms(500);
 	}
-		
-	};
 }
